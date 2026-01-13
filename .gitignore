@@ -1,0 +1,39 @@
+# ========================
+# Dependencies
+# ========================
+node_modules/
+
+# ========================
+# Logs
+# ========================
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# ========================
+# Environment files
+# ========================
+.env
+.env.*
+!.env.example
+
+# ========================
+# Source files (ignore)
+# ========================
+src/
+public/
+
+# ========================
+# Build output (KEEP dist)
+# ========================
+!dist/
+dist/**/*.map
+
+# ========================
+# OS / Editor junk
+# ========================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+web.zip
