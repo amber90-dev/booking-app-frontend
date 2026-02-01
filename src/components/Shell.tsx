@@ -40,7 +40,7 @@ export default function Shell() {
         {/* Header (fixed) */}
         <div className="h-16 flex items-center px-4 border-b border-slate-200 shrink-0">
           <div className="h-8 w-8 rounded bg-slate-900 mr-2" />
-          <div className="font-semibold">NovaCRM</div>
+          <div className="font-semibold">RoadServe</div>
         </div>
 
         {/* Scrollable nav area */}
