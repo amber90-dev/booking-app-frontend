@@ -18,15 +18,9 @@ export default function MonthlyTotal() {
   const [rows, setRows] = useState<ReportRow[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // Default to current month range
-  const [startDate, setStartDate] = useState(() => {
-    const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
-  });
-  const [endDate, setEndDate] = useState(() => {
-    const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10);
-  });
+  // Default to all records (empty strings)
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   useEffect(() => {
     fetchData();
@@ -49,7 +43,12 @@ export default function MonthlyTotal() {
   const filteredRows = useMemo(() => {
     return rows.filter(r => {
       if (!r.date) return false;
-      return r.date >= startDate && r.date <= endDate;
+      // If start date is set, check it
+      if (startDate && r.date < startDate) return false;
+      // If end date is set, check it
+      if (endDate && r.date > endDate) return false;
+      
+      return true;
     });
   }, [rows, startDate, endDate]);
 
