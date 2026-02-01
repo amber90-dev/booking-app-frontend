@@ -6,9 +6,15 @@ export default function MonthlyTotal() {
     const { error: toastError } = useToast();
     const [rows, setRows] = useState([]);
     const [loading, setLoading] = useState(true);
-    // Filters
-    const [minPrice, setMinPrice] = useState("");
-    const [maxPrice, setMaxPrice] = useState("");
+    // Default to current month range
+    const [startDate, setStartDate] = useState(() => {
+        const now = new Date();
+        return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+    });
+    const [endDate, setEndDate] = useState(() => {
+        const now = new Date();
+        return new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10);
+    });
     useEffect(() => {
         fetchData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -16,8 +22,8 @@ export default function MonthlyTotal() {
     async function fetchData() {
         setLoading(true);
         try {
-            // Fetching all bookings for now. In a real app, might want a specific report endpoint or date range.
-            const { data } = await api.get("/bookings", { params: { limit: 1000 } });
+            // Fetching all bookings for client-side filtering (limit increased)
+            const { data } = await api.get("/bookings", { params: { limit: 2000 } });
             setRows(data.items);
         }
         catch (e) {
@@ -29,14 +35,11 @@ export default function MonthlyTotal() {
     }
     const filteredRows = useMemo(() => {
         return rows.filter(r => {
-            const val = parseFloat(r.totalClient || "0");
-            if (minPrice !== "" && val < minPrice)
+            if (!r.date)
                 return false;
-            if (maxPrice !== "" && val > maxPrice)
-                return false;
-            return true;
+            return r.date >= startDate && r.date <= endDate;
         });
-    }, [rows, minPrice, maxPrice]);
+    }, [rows, startDate, endDate]);
     const stats = useMemo(() => {
         let jobTotal = 0;
         let driverTotal = 0;
@@ -46,14 +49,16 @@ export default function MonthlyTotal() {
         });
         const commission = jobTotal - driverTotal;
         return {
-            jobTotal: jobTotal.toFixed(2),
-            driverTotal: driverTotal.toFixed(2),
-            commission: commission.toFixed(2)
+            count: filteredRows.length,
+            jobTotal,
+            driverTotal,
+            commission
         };
     }, [filteredRows]);
-    return (_jsxs("div", { className: "space-y-6", children: [_jsx("h2", { className: "text-xl font-bold", children: "Monthly Total Report" }), _jsxs("div", { className: "card p-4 flex items-end gap-4 bg-white rounded-lg shadow-sm border border-slate-200", children: [_jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-slate-700 mb-1", children: "Min Income" }), _jsx("input", { type: "number", className: "input w-32 border p-2 rounded", value: minPrice, onChange: e => setMinPrice(e.target.value ? parseFloat(e.target.value) : ""), placeholder: "0.00" })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-slate-700 mb-1", children: "Max Income" }), _jsx("input", { type: "number", className: "input w-32 border p-2 rounded", value: maxPrice, onChange: e => setMaxPrice(e.target.value ? parseFloat(e.target.value) : ""), placeholder: "Max" })] })] }), _jsxs("div", { className: "grid grid-cols-1 md:grid-cols-3 gap-4", children: [_jsxs("div", { className: "p-6 bg-blue-50 border border-blue-100 rounded-xl", children: [_jsx("div", { className: "text-sm text-blue-600 font-medium uppercase", children: "Job Total (Client)" }), _jsxs("div", { className: "text-3xl font-bold text-blue-900 mt-2", children: ["\u00A3", stats.jobTotal] })] }), _jsxs("div", { className: "p-6 bg-amber-50 border border-amber-100 rounded-xl", children: [_jsx("div", { className: "text-sm text-amber-600 font-medium uppercase", children: "Driver Total" }), _jsxs("div", { className: "text-3xl font-bold text-amber-900 mt-2", children: ["\u00A3", stats.driverTotal] })] }), _jsxs("div", { className: "p-6 bg-emerald-50 border border-emerald-100 rounded-xl", children: [_jsx("div", { className: "text-sm text-emerald-600 font-medium uppercase", children: "Commission" }), _jsxs("div", { className: "text-3xl font-bold text-emerald-900 mt-2", children: ["\u00A3", stats.commission] })] })] }), _jsx("div", { className: "card overflow-hidden border border-slate-200 rounded-lg", children: _jsxs("table", { className: "min-w-full text-sm", children: [_jsx("thead", { className: "bg-slate-50 text-slate-700 font-medium", children: _jsxs("tr", { children: [_jsx("th", { className: "px-4 py-3 text-left", children: "Date" }), _jsx("th", { className: "px-4 py-3 text-left", children: "Ref" }), _jsx("th", { className: "px-4 py-3 text-right", children: "Job Total" }), _jsx("th", { className: "px-4 py-3 text-right", children: "Driver Total" }), _jsx("th", { className: "px-4 py-3 text-right", children: "Commission" })] }) }), _jsx("tbody", { className: "divide-y divide-slate-100", children: loading ? (_jsx("tr", { children: _jsx("td", { colSpan: 5, className: "p-4 text-center", children: "Loading..." }) })) : filteredRows.length === 0 ? (_jsx("tr", { children: _jsx("td", { colSpan: 5, className: "p-4 text-center text-slate-500", children: "No data found in range" }) })) : (filteredRows.map(r => {
+    return (_jsxs("div", { className: "space-y-6", children: [_jsxs("div", { className: "flex items-center justify-between", children: [_jsx("h2", { className: "text-xl font-bold", children: "Monthly Total" }), _jsxs("div", { className: "flex items-center gap-4", children: [_jsxs("div", { className: "flex items-center gap-2", children: [_jsx("label", { className: "text-sm font-medium text-slate-700", children: "From" }), _jsx("input", { type: "date", className: "input w-40", value: startDate, onChange: e => setStartDate(e.target.value) })] }), _jsxs("div", { className: "flex items-center gap-2", children: [_jsx("label", { className: "text-sm font-medium text-slate-700", children: "To" }), _jsx("input", { type: "date", className: "input w-40", value: endDate, onChange: e => setEndDate(e.target.value) })] })] })] }), _jsx("div", { className: "card p-0 overflow-hidden", children: _jsxs("table", { className: "min-w-full text-sm", children: [_jsx("thead", { className: "bg-slate-50 text-slate-700 font-medium", children: _jsxs("tr", { children: [_jsx("th", { className: "px-4 py-3 text-left", children: "Account No" }), _jsx("th", { className: "px-4 py-3 text-left", children: "Company Name" }), _jsx("th", { className: "px-4 py-3 text-left", children: "Ref" }), _jsx("th", { className: "px-4 py-3 text-right", children: "Job Total" }), _jsx("th", { className: "px-4 py-3 text-left", children: "Driver No" }), _jsx("th", { className: "px-4 py-3 text-right", children: "Driver Total" }), _jsx("th", { className: "px-4 py-3 text-right", children: "Commission" })] }) }), _jsx("tbody", { className: "divide-y divide-slate-100", children: loading ? (_jsx("tr", { children: _jsx("td", { colSpan: 7, className: "p-4 text-center", children: "Loading..." }) })) : filteredRows.length === 0 ? (_jsx("tr", { children: _jsx("td", { colSpan: 7, className: "p-4 text-center text-slate-500", children: "No jobs found in this range" }) })) : (filteredRows.map((r) => {
                                 const jt = parseFloat(r.totalClient || "0");
                                 const dt = parseFloat(r.totalDriver || "0");
-                                return (_jsxs("tr", { className: "hover:bg-slate-50", children: [_jsx("td", { className: "px-4 py-2", children: r.date }), _jsx("td", { className: "px-4 py-2 font-mono text-xs", children: r.bookingRef }), _jsxs("td", { className: "px-4 py-2 text-right", children: ["\u00A3", jt.toFixed(2)] }), _jsxs("td", { className: "px-4 py-2 text-right", children: ["\u00A3", dt.toFixed(2)] }), _jsxs("td", { className: "px-4 py-2 text-right font-medium", children: ["\u00A3", (jt - dt).toFixed(2)] })] }, r.id));
-                            })) })] }) })] }));
+                                const comm = jt - dt;
+                                return (_jsxs("tr", { className: "hover:bg-slate-50", children: [_jsx("td", { className: "px-4 py-2", children: r.accountNo || "-" }), _jsx("td", { className: "px-4 py-2 truncate max-w-[200px]", title: r.companyName || "", children: r.companyName || "-" }), _jsx("td", { className: "px-4 py-2 font-mono text-xs", children: r.bookingRef || "-" }), _jsx("td", { className: "px-4 py-2 text-right", children: jt !== 0 ? `£${jt.toFixed(2)}` : "£0.00" }), _jsx("td", { className: "px-4 py-2", children: r.driverMobile || "-" }), _jsx("td", { className: "px-4 py-2 text-right", children: dt !== 0 ? `£${dt.toFixed(2)}` : "£0.00" }), _jsx("td", { className: "px-4 py-2 text-right font-medium text-emerald-700", children: comm !== 0 ? `£${comm.toFixed(2)}` : "£0.00" })] }, r.id));
+                            })) })] }) }), _jsxs("div", { className: "bg-white border border-slate-200 rounded-xl p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-center shadow-sm", children: [_jsxs("div", { children: [_jsx("div", { className: "text-sm text-slate-500 mb-1", children: "Total Jobs" }), _jsx("div", { className: "text-2xl font-bold text-slate-800", children: stats.count })] }), _jsxs("div", { children: [_jsx("div", { className: "text-sm text-slate-500 mb-1", children: "Job Total" }), _jsxs("div", { className: "text-2xl font-bold text-blue-600", children: ["\u00A3", stats.jobTotal.toFixed(0)] })] }), _jsxs("div", { children: [_jsx("div", { className: "text-sm text-slate-500 mb-1", children: "Driver Total" }), _jsxs("div", { className: "text-2xl font-bold text-amber-600", children: ["\u00A3", stats.driverTotal.toFixed(0)] })] }), _jsxs("div", { children: [_jsx("div", { className: "text-sm text-slate-500 mb-1", children: "Commission" }), _jsxs("div", { className: "text-2xl font-bold text-emerald-600", children: ["\u00A3", stats.commission.toFixed(0)] })] })] })] }));
 }

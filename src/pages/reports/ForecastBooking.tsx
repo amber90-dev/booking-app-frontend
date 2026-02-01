@@ -7,7 +7,8 @@ type BookingRow = {
   date: string | null;
   time: string | null;
   bookingRef: string | null;
-  clientId: string | null;
+  clientForename: string | null;
+  clientSurname: string | null;
   pickUpAddress: string | null;
   dropOffAddress: string | null;
   vehicle: string | null;
@@ -105,7 +106,9 @@ export default function ForecastBooking() {
                     <div className="text-slate-500 text-xs">{r.time}</div>
                   </td>
                   <td className="px-4 py-2 font-mono text-xs">{r.bookingRef}</td>
-                  <td className="px-4 py-2">{r.clientId}</td>
+                  <td className="px-4 py-2 font-medium">
+                    {(`${r.clientForename || ""} ${r.clientSurname || ""}`).trim() || "-"}
+                  </td>
                   <td className="px-4 py-2 max-w-[200px] truncate">
                     <div title={r.pickUpAddress || ""}>{r.pickUpAddress}</div>
                     <div title={r.dropOffAddress || ""} className="text-slate-400">to {r.dropOffAddress}</div>

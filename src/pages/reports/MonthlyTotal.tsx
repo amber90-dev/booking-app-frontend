@@ -4,13 +4,13 @@ import { useToast } from "../../components/toast/ToastProvider";
 
 type ReportRow = {
   id: string;
-  totalClient: string | null;
-  totalDriver: string | null;
-  clientViaPrice: string | null;
-  clientGratuity: string | null;
-  // Add other fields if needed for display
-  date: string | null;
+  accountNo: string | null;
+  companyName: string | null;
   bookingRef: string | null;
+  totalClient: string | null;
+  driverMobile: string | null;
+  totalDriver: string | null;
+  date: string | null; // YYYY-MM-DD
 };
 
 export default function MonthlyTotal() {
@@ -18,9 +18,15 @@ export default function MonthlyTotal() {
   const [rows, setRows] = useState<ReportRow[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // Filters
-  const [minPrice, setMinPrice] = useState<number | "">("");
-  const [maxPrice, setMaxPrice] = useState<number | "">("");
+  // Default to current month range
+  const [startDate, setStartDate] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+  });
+  const [endDate, setEndDate] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10);
+  });
 
   useEffect(() => {
     fetchData();
@@ -30,8 +36,8 @@ export default function MonthlyTotal() {
   async function fetchData() {
     setLoading(true);
     try {
-      // Fetching all bookings for now. In a real app, might want a specific report endpoint or date range.
-      const { data } = await api.get("/bookings", { params: { limit: 1000 } }); 
+      // Fetching all bookings for client-side filtering (limit increased)
+      const { data } = await api.get("/bookings", { params: { limit: 2000 } }); 
       setRows(data.items);
     } catch (e: any) {
       toastError(e?.response?.data?.message || e.message || "Failed to load data");
@@ -42,12 +48,10 @@ export default function MonthlyTotal() {
 
   const filteredRows = useMemo(() => {
     return rows.filter(r => {
-      const val = parseFloat(r.totalClient || "0");
-      if (minPrice !== "" && val < minPrice) return false;
-      if (maxPrice !== "" && val > maxPrice) return false;
-      return true;
+      if (!r.date) return false;
+      return r.date >= startDate && r.date <= endDate;
     });
-  }, [rows, minPrice, maxPrice]);
+  }, [rows, startDate, endDate]);
 
   const stats = useMemo(() => {
     let jobTotal = 0;
@@ -61,84 +65,71 @@ export default function MonthlyTotal() {
     const commission = jobTotal - driverTotal;
 
     return {
-      jobTotal: jobTotal.toFixed(2),
-      driverTotal: driverTotal.toFixed(2),
-      commission: commission.toFixed(2)
+      count: filteredRows.length,
+      jobTotal,
+      driverTotal,
+      commission
     };
   }, [filteredRows]);
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-bold">Monthly Total Report</h2>
-
-      {/* Filters */}
-      <div className="card p-4 flex items-end gap-4 bg-white rounded-lg shadow-sm border border-slate-200">
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Min Income</label>
-          <input 
-            type="number" 
-            className="input w-32 border p-2 rounded" 
-            value={minPrice} 
-            onChange={e => setMinPrice(e.target.value ? parseFloat(e.target.value) : "")}
-            placeholder="0.00"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Max Income</label>
-          <input 
-            type="number" 
-            className="input w-32 border p-2 rounded" 
-            value={maxPrice} 
-            onChange={e => setMaxPrice(e.target.value ? parseFloat(e.target.value) : "")}
-            placeholder="Max"
-          />
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold">Monthly Total</h2>
+        <div className="flex items-center gap-4">
+           <div className="flex items-center gap-2">
+             <label className="text-sm font-medium text-slate-700">From</label>
+             <input 
+              type="date" 
+              className="input w-40"
+              value={startDate}
+              onChange={e => setStartDate(e.target.value)}
+            />
+           </div>
+           <div className="flex items-center gap-2">
+             <label className="text-sm font-medium text-slate-700">To</label>
+             <input 
+              type="date" 
+              className="input w-40"
+              value={endDate}
+              onChange={e => setEndDate(e.target.value)}
+            />
+           </div>
         </div>
       </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-6 bg-blue-50 border border-blue-100 rounded-xl">
-          <div className="text-sm text-blue-600 font-medium uppercase">Job Total (Client)</div>
-          <div className="text-3xl font-bold text-blue-900 mt-2">£{stats.jobTotal}</div>
-        </div>
-        <div className="p-6 bg-amber-50 border border-amber-100 rounded-xl">
-          <div className="text-sm text-amber-600 font-medium uppercase">Driver Total</div>
-          <div className="text-3xl font-bold text-amber-900 mt-2">£{stats.driverTotal}</div>
-        </div>
-        <div className="p-6 bg-emerald-50 border border-emerald-100 rounded-xl">
-          <div className="text-sm text-emerald-600 font-medium uppercase">Commission</div>
-          <div className="text-3xl font-bold text-emerald-900 mt-2">£{stats.commission}</div>
-        </div>
-      </div>
-
-      {/* Table Detail */}
-      <div className="card overflow-hidden border border-slate-200 rounded-lg">
+      
+      <div className="card p-0 overflow-hidden">
         <table className="min-w-full text-sm">
           <thead className="bg-slate-50 text-slate-700 font-medium">
             <tr>
-              <th className="px-4 py-3 text-left">Date</th>
+              <th className="px-4 py-3 text-left">Account No</th>
+              <th className="px-4 py-3 text-left">Company Name</th>
               <th className="px-4 py-3 text-left">Ref</th>
               <th className="px-4 py-3 text-right">Job Total</th>
+              <th className="px-4 py-3 text-left">Driver No</th>
               <th className="px-4 py-3 text-right">Driver Total</th>
               <th className="px-4 py-3 text-right">Commission</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {loading ? (
-              <tr><td colSpan={5} className="p-4 text-center">Loading...</td></tr>
+              <tr><td colSpan={7} className="p-4 text-center">Loading...</td></tr>
             ) : filteredRows.length === 0 ? (
-              <tr><td colSpan={5} className="p-4 text-center text-slate-500">No data found in range</td></tr>
+              <tr><td colSpan={7} className="p-4 text-center text-slate-500">No jobs found in this range</td></tr>
             ) : (
-              filteredRows.map(r => {
+              filteredRows.map((r) => {
                  const jt = parseFloat(r.totalClient || "0");
                  const dt = parseFloat(r.totalDriver || "0");
+                 const comm = jt - dt;
                  return (
                   <tr key={r.id} className="hover:bg-slate-50">
-                    <td className="px-4 py-2">{r.date}</td>
-                    <td className="px-4 py-2 font-mono text-xs">{r.bookingRef}</td>
-                    <td className="px-4 py-2 text-right">£{jt.toFixed(2)}</td>
-                    <td className="px-4 py-2 text-right">£{dt.toFixed(2)}</td>
-                    <td className="px-4 py-2 text-right font-medium">£{(jt - dt).toFixed(2)}</td>
+                    <td className="px-4 py-2">{r.accountNo || "-"}</td>
+                    <td className="px-4 py-2 truncate max-w-[200px]" title={r.companyName || ""}>{r.companyName || "-"}</td>
+                    <td className="px-4 py-2 font-mono text-xs">{r.bookingRef || "-"}</td>
+                    <td className="px-4 py-2 text-right">{jt !== 0 ? `£${jt.toFixed(2)}` : "£0.00"}</td>
+                    <td className="px-4 py-2">{r.driverMobile || "-"}</td>
+                    <td className="px-4 py-2 text-right">{dt !== 0 ? `£${dt.toFixed(2)}` : "£0.00"}</td>
+                    <td className="px-4 py-2 text-right font-medium text-emerald-700">{comm !== 0 ? `£${comm.toFixed(2)}` : "£0.00"}</td>
                   </tr>
                  );
               })
@@ -146,6 +137,27 @@ export default function MonthlyTotal() {
           </tbody>
         </table>
       </div>
-    </div>
+
+      {/* Summary Footer */}
+      <div className="bg-white border border-slate-200 rounded-xl p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-center shadow-sm">
+        <div>
+           <div className="text-sm text-slate-500 mb-1">Total Jobs</div>
+           <div className="text-2xl font-bold text-slate-800">{stats.count}</div>
+        </div>
+        <div>
+           <div className="text-sm text-slate-500 mb-1">Job Total</div>
+           <div className="text-2xl font-bold text-blue-600">£{stats.jobTotal.toFixed(0)}</div>
+        </div>
+        <div>
+           <div className="text-sm text-slate-500 mb-1">Driver Total</div>
+           <div className="text-2xl font-bold text-amber-600">£{stats.driverTotal.toFixed(0)}</div>
+        </div>
+        <div>
+           <div className="text-sm text-slate-500 mb-1">Commission</div>
+           <div className="text-2xl font-bold text-emerald-600">£{stats.commission.toFixed(0)}</div>
+        </div>
+      </div>
+
+      </div>
   );
 }
