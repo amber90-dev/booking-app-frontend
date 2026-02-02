@@ -20,24 +20,36 @@ export const initSession = createAsyncThunk(
   "auth/initSession",
   async (_, { getState, dispatch, rejectWithValue }) => {
     try {
-      // If we already have a token from localStorage, verify it via /auth/me (or similar)
-      // For now, we stick to the existing /auth/refresh logic to rotate/verify the httpOnly cookie.
-      // If /auth/refresh works, it gives us a fresh token.
-      
+      // 1. Try cookie refresh first (preferred)
       const { data } = await api.post("/auth/refresh"); 
       return {
         user: (data && (data.user ?? data?.data?.user)) || null,
         accessToken: (data && (data.accessToken ?? data?.data?.accessToken)) || null,
       };
-    } catch (e) {
-      // If refresh fails (e.g. no cookie), but we have a token in localStorage,
-      // we could try to verify that token instead. 
-      // But usually, if refresh fails, session is dead.
-      // However, to prevent "logout on refresh" if cookie is blocked but token is valid:
+    } catch (refreshError) {
+      // 2. If cookie refresh fails, check if we have a valid access token in store/localstorage
       const state = getState() as any;
-      if (state.auth.accessToken) {
-         // Optionally: return existing state if we want to "trust" the local token until 401
-         // return { user: state.auth.user, accessToken: state.auth.accessToken };
+      const token = state.auth?.accessToken || localStorage.getItem("accessToken");
+
+      if (token) {
+        try {
+          // Verify the existing token
+          // We need to ensure the token is in the state for axios interceptor to pick it up, 
+          // or manually attach it. store.getState() might be stale if we just got it from LS?
+          // Actually axios interceptor reads from store. If store is empty (initial load), 
+          // we might need to rely on the fact that we hydrated initialState from LS.
+          
+          const { data } = await api.get("/auth/me");
+          // If successful, our token is valid.
+          // /auth/me returns { id, username } usually.
+          return {
+             user: data,
+             accessToken: token // keep existing token
+          };
+        } catch (meError) {
+           // Token is also invalid/expired
+           return rejectWithValue(null);
+        }
       }
       return rejectWithValue(null);
     }
