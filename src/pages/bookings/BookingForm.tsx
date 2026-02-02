@@ -624,7 +624,9 @@ export default function BookingForm() {
       if (lockedDriver) setLockedDriver(false);
     }
 
-    if (STRING_FIELDS.has(k) && typeof v === "string") v = v.trim();
+    if (STRING_FIELDS.has(k) && typeof v === "string") {
+      // v = v.trim(); // Do not trim while typing, it prevents spaces
+    }
     // if ((k === "clientTelUsedMins" || k === "driverTelUsedMins") && v !== "") {
     //   v = Number.isNaN(Number(v)) ? v : Number(v);
     // }
