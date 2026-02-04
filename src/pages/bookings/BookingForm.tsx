@@ -858,7 +858,8 @@ export default function BookingForm() {
                 disabled={lockedCompany}
               />
             </L>
-            <L label="VIP">
+            {/* VIP field hidden as per request */}
+            {/* <L label="VIP">
               <input
                 type="checkbox"
                 className="h-4 w-4"
@@ -867,7 +868,7 @@ export default function BookingForm() {
                 onBlur={markTouched("vip")}
                 disabled={lockedCompany}
               />
-            </L>
+            </L> */}
           </Grid>
         </Section>
 
