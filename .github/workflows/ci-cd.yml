@@ -1,0 +1,60 @@
+name: Frontend CI/CD Pipeline
+
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+    branches: ["main", "master"]
+
+# Grant appropriate permissions
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Project
+        run: npm run build
+
+    # --- Deployment Steps (Example: SSH/SCP) ---
+    # Uncomment and configure the following steps to enable automatic deployment
+    # Ensure you have added the necessary secrets (SERVER_HOST, SERVER_USER, SSH_KEY) in your GitHub Repository settings.
+
+    # - name: Deploy to Server via SSH
+    #   uses: appleboy/ssh-action@v1.0.3
+    #   with:
+    #     host: ${{ secrets.SERVER_HOST }}     # Your deployment server IP or domain
+    #     username: ${{ secrets.SERVER_USER }} # Server username (e.g., ubuntu, root)
+    #     key: ${{ secrets.SSH_PRIVATE_KEY }}  # Private SSH key for authentication
+    #     script: |
+    #       # Navigate to your project directory on the server
+    #       cd /var/www/booking-app-frontend
+    #
+    #       # Pull the latest changes
+    #       git pull origin main
+    #
+    #       # Install dependencies and rebuild
+    #       npm install
+    #       npm run build
+    #
+    #       # Restart your web server if necessary (e.g., Nginx)
+    #       # sudo systemctl restart nginx
