@@ -2,7 +2,9 @@ import { useEffect, useState, FormEvent, useRef } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
 import api from "../../api/axios";
 import { useNavigate, useParams } from "react-router-dom";
+import { Printer } from "lucide-react";
 import { useToast } from "../../components/toast/ToastProvider";
+import BookingReceipt from "./BookingReceipt";
 
 /* =========================
    Types & Validation Utils
@@ -408,6 +410,7 @@ export default function BookingForm() {
   const [dirty, setDirty] = useState<Record<string, boolean>>({});
   const [saving, setSaving] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [showPrintMode, setShowPrintMode] = useState(false);
   const { success, error: toastError } = useToast();
 
   /* --- Lookup State & Locks --- */
@@ -725,11 +728,18 @@ export default function BookingForm() {
       if (isEdit) {
         await api.put(`/bookings/${id}`, model);
         success("Booking updated");
+        setShowPrintMode(true); // Show print button after update
       } else {
-        await api.post("/bookings", model);
+        const { data } = await api.post("/bookings", model);
         success("Booking created");
+        // If it's a new booking, we might want to navigate to the edit page of the new booking or just show print
+        if (data?.id) {
+          nav(`/bookings/${data.id}`, { replace: true });
+          setShowPrintMode(true);
+        } else {
+          nav("/bookings");
+        }
       }
-      nav("/bookings");
     } catch (err: any) {
       toastError(err?.response?.data?.message || err.message || "Save failed");
     } finally {
@@ -755,12 +765,12 @@ export default function BookingForm() {
     (submitted || touched[k] || dirty[k]) && !!errors[k];
 
   return (
-    <div className="max-w-6xl mx-auto px-4 md:px-6 py-6">
-      <div className="flex items-center justify-between mb-5">
+    <div className="max-w-6xl mx-auto px-4 md:px-6 py-6 print:py-0 print:px-0 print:m-0 print:max-w-none">
+      <div className="flex items-center justify-between mb-5 no-print">
         <h2 className="text-xl font-semibold">
           {isEdit ? "Edit Booking" : "New Booking"}
         </h2>
-        <div className="flex gap-2">
+        <div className="flex gap-2 text-right">
           <button
             type="button"
             className="btn border border-slate-200"
@@ -777,6 +787,18 @@ export default function BookingForm() {
               Delete
             </button>
           )}
+
+          {isEdit && (
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="btn bg-slate-100 text-slate-900 border border-slate-200 hover:bg-slate-200"
+            >
+              <Printer size={18} className="mr-2" />
+              Print Receipt
+            </button>
+          )}
+
           <button
             type="button"
             onClick={onSubmit as any}
@@ -788,7 +810,12 @@ export default function BookingForm() {
         </div>
       </div>
 
-      <form onSubmit={onSubmit} className="space-y-8">
+      {/* Hidden Print Wrapper - Moved outside form */}
+      <div className="hidden print:block">
+        <BookingReceipt booking={model} />
+      </div>
+
+      <form onSubmit={onSubmit} className="space-y-8 no-print print:hidden">
         {/* Booking / Company */}
         <Section title="Booking & Company">
           <Grid>

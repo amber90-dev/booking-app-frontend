@@ -34,9 +34,9 @@ export default function Shell() {
 
   return (
     // Fix overall layout to viewport height so columns don't stretch with content
-    <div className="h-screen grid" style={{ gridTemplateColumns: "240px 1fr" }}>
+    <div className="h-screen grid print:block" style={{ gridTemplateColumns: "240px 1fr" }}>
       {/* Sidebar */}
-      <aside className="hidden md:flex flex-col bg-white border-r border-slate-200 sticky top-0 h-screen">
+      <aside className="hidden md:flex flex-col bg-white border-r border-slate-200 sticky top-0 h-screen no-print print:hidden">
         {/* Header (fixed) */}
         <div className="h-16 flex items-center px-4 border-b border-slate-200 shrink-0">
           <div className="h-8 w-8 rounded bg-slate-900 mr-2" />
@@ -96,7 +96,7 @@ export default function Shell() {
 
       {/* Main column: header fixed, content scrolls independently */}
       <div className="flex flex-col min-h-0">
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 shrink-0">
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 shrink-0 no-print print:hidden">
           <h1 className="text-lg font-semibold"></h1>
           <div className="flex items-center gap-3">
             <Avatar name={user?.username || "User"} />
@@ -104,7 +104,7 @@ export default function Shell() {
         </header>
 
         {/* Make main area scrollable, not the whole page */}
-        <main className="p-4 md:p-6 overflow-y-auto flex-1">
+        <main className="p-4 md:p-6 overflow-y-auto flex-1 print:p-0">
           <Outlet />
         </main>
       </div>

@@ -1,18 +1,91 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root { --sidebar-width: 280px; }
-html, body, #root { height: 100%; }
+:root {
+  --sidebar-width: 280px;
+}
+html,
+body,
+#root {
+  height: 100%;
+}
 
-.btn { @apply inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-medium transition; }
-.btn-primary { @apply bg-brand-600 text-white hover:bg-brand-700; }
-.btn-ghost { @apply bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800; }
-.card { @apply bg-white dark:bg-slate-900 rounded-xl shadow-soft border border-slate-200 dark:border-slate-700; }
-.input { @apply w-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500; }
-.badge { @apply inline-flex items-center text-xs px-2 py-0.5 rounded-full; }
-.badge-green { @apply bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-200; }
-.badge-amber { @apply bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200; }
-.badge-rose { @apply bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-200; }
-.link { @apply text-brand-600 hover:text-brand-700 underline underline-offset-2; }
+.btn {
+  @apply inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-medium transition;
+}
+.btn-primary {
+  @apply bg-brand-600 text-white hover:bg-brand-700;
+}
+.btn-ghost {
+  @apply bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800;
+}
+.card {
+  @apply bg-white dark:bg-slate-900 rounded-xl shadow-soft border border-slate-200 dark:border-slate-700;
+}
+.input {
+  @apply w-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500;
+}
+.badge {
+  @apply inline-flex items-center text-xs px-2 py-0.5 rounded-full;
+}
+.badge-green {
+  @apply bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-200;
+}
+.badge-amber {
+  @apply bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200;
+}
+.badge-rose {
+  @apply bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-200;
+}
+.link {
+  @apply text-brand-600 hover:text-brand-700 underline underline-offset-2;
+}
+
+@media print {
+  /* Hide the entire sidebar and header */
+  aside, 
+  nav, 
+  header, 
+  footer,
+  .no-print,
+  .print-hidden,
+  .btn,
+  button,
+  form.no-print {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Reset layout for printing */
+  html, body {
+    height: auto !important;
+    overflow: visible !important;
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Force main area to take full width */
+  main {
+    display: block !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+
+  /* Remove any grid/flex layouts that might constrain height */
+  #root, .h-screen, .grid {
+    display: block !important;
+    height: auto !important;
+    width: 100% !important;
+  }
+
+  /* Ensure the receipt is visible and takes full width */
+  .print\:block {
+    display: block !important;
+  }
+}

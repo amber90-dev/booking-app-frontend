@@ -5,8 +5,57 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RoadServe</title>
-    <script type="module" crossorigin src="/assets/index-Cy-Ia034.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-hBisB3li.css">
+    <style>
+      @media print {
+        @page {
+          margin: 5mm !important;
+        }
+        /* Hide UI components */
+        aside, header, footer, nav, button, .no-print, .btn, .print-hidden {
+          display: none !important;
+        }
+        
+        /* Reset essentials for print flow */
+        @page {
+          margin: 0mm 15mm !important; /* 0 top/bottom, 15mm left/right as requested */
+          size: auto;
+        }
+
+        html, body, #root {
+          margin: 0 !important;
+          padding: 0 !important;
+          background: white !important;
+          width: 100% !important;
+        }
+
+        /* Hide UI components */
+        aside, header, footer, nav, button, .no-print, .btn, .print-hidden {
+          display: none !important;
+          visibility: hidden !important;
+          height: 0 !important;
+          width: 0 !important;
+          overflow: hidden !important;
+        }
+
+        /* Force Grid/Flex to work */
+        .grid { display: grid !important; }
+        .flex { display: flex !important; }
+        .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+
+        /* Receipt styling */
+        .booking-receipt-print {
+          width: 100% !important;
+          margin: 0 !important;
+          padding-top: 5mm !important; /* Slight buffer from absolute top edge */
+          padding-bottom: 5mm !important;
+          background: white !important;
+          position: relative !important;
+          top: 0 !important;
+        }
+      }
+    </style>
+    <script type="module" crossorigin src="/assets/index-BgelkFaG.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CKfbbOb3.css">
   </head>
   <body class="bg-slate-50">
     <script>
