@@ -38,9 +38,8 @@ export default function Shell() {
       {/* Sidebar */}
       <aside className="hidden md:flex flex-col bg-white border-r border-slate-200 sticky top-0 h-screen no-print print:hidden">
         {/* Header (fixed) */}
-        <div className="h-16 flex items-center px-4 border-b border-slate-200 shrink-0">
-          <div className="h-8 w-8 rounded bg-slate-900 mr-2" />
-          <div className="font-semibold">RoadServe</div>
+        <div className="h-28 flex items-center justify-center p-2 border-b border-slate-200 shrink-0 bg-white">
+          <img src="/roadserve-logo.png" alt="RoadServe" className="w-full h-full object-contain mix-blend-multiply" />
         </div>
 
         {/* Scrollable nav area */}
@@ -77,6 +76,7 @@ export default function Shell() {
           <div className="pt-4 pb-1 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Reports</div>
           <NavItem to="/reports/monthly" label="Monthly Total" icon={<Landmark size={18} />} />
           <NavItem to="/reports/driver-schedule" label="Driver Schedule" icon={<Handshake size={18} />} />
+          <NavItem to="/reports/client-schedule" label="Client Schedule" icon={<Handshake size={18} />} />
           <NavItem to="/reports/forecast" label="Forecast" icon={<CalendarIcon size={18} />} />
         </nav>
 

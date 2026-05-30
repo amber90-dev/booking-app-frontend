@@ -21,6 +21,7 @@ import StaffList from "../pages/staff/StaffList";
 import StaffForm from "../pages/staff/StaffForm";
 import MonthlyTotal from "../pages/reports/MonthlyTotal";
 import DriverSchedule from "../pages/reports/DriverSchedule";
+import ClientSchedule from "../pages/reports/ClientSchedule";
 import ForecastBooking from "../pages/reports/ForecastBooking";
 
 function RouteError() {
@@ -87,6 +88,7 @@ export const router = createBrowserRouter(
         // Reports
         { path: "reports/monthly", element: <MonthlyTotal /> },
         { path: "reports/driver-schedule", element: <DriverSchedule /> },
+        { path: "reports/client-schedule", element: <ClientSchedule /> },
         { path: "reports/forecast", element: <ForecastBooking /> },
 
 

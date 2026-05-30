@@ -2,7 +2,7 @@ import { useEffect, useState, FormEvent, useRef } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
 import api from "../../api/axios";
 import { useNavigate, useParams } from "react-router-dom";
-import { Printer } from "lucide-react";
+import { Printer, CalendarIcon } from "lucide-react";
 import { useToast } from "../../components/toast/ToastProvider";
 import BookingReceipt from "./BookingReceipt";
 
@@ -259,6 +259,35 @@ function L({ label, children }: { label: string; children: React.ReactNode }) {
       <div className="text-sm text-slate-600 mb-1">{label}</div>
       {children}
     </label>
+  );
+}
+
+type UKDateInputProps = {
+  value: string;
+  onChange: (e: any) => void;
+  onBlur: (e: any) => void;
+};
+
+function UKDateInput({ value, onChange, onBlur }: UKDateInputProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <div 
+      className="input flex items-center justify-between bg-white text-slate-700 cursor-pointer relative"
+      onClick={() => inputRef.current?.showPicker()}
+    >
+      <span>{value ? new Date(value).toLocaleDateString('en-GB') : "DD/MM/YYYY"}</span>
+      <CalendarIcon size={16} className="text-slate-400" />
+      <input 
+        ref={inputRef}
+        type="date" 
+        className="absolute w-0 h-0 opacity-0" 
+        style={{ bottom: 0, left: 0 }}
+        value={value} 
+        onChange={onChange}
+        onBlur={onBlur}
+      />
+    </div>
   );
 }
 
@@ -951,8 +980,8 @@ export default function BookingForm() {
           </Grid>
         </Section>
 
-        {/* Staff & Client */}
-        <Section title="Staff & Client">
+        {/* Staff */}
+        <Section title="Staff">
           <Grid>
             {/* Staff ID + dropdown */}
             <div ref={staffBoxRef} className="relative">
@@ -1002,9 +1031,7 @@ export default function BookingForm() {
             </L>
 
             <L label="Date Taken">
-              <input
-                type="date"
-                className="input"
+              <UKDateInput
                 value={model.dateTaken ?? ""}
                 onChange={setField("dateTaken")}
                 onBlur={markTouched("dateTaken")}
@@ -1029,7 +1056,12 @@ export default function BookingForm() {
                 </div>
               )}
             </L>
+          </Grid>
+        </Section>
 
+        {/* Client */}
+        <Section title="Client">
+          <Grid>
             {/* Client ID + dropdown */}
             <div ref={clientBoxRef} className="relative">
               <L label="Client ID">
@@ -1177,9 +1209,7 @@ export default function BookingForm() {
             </L>
 
             <L label="Date *">
-              <input
-                type="date"
-                className="input"
+              <UKDateInput
                 value={model.date ?? ""}
                 onChange={setField("date")}
                 onBlur={markTouched("date")}
@@ -1323,7 +1353,7 @@ export default function BookingForm() {
                 />
                 <MoneyField
                   name="clientLhrGtwCharge"
-                  label="LHR/GTW Charge"
+                  label="Drop off charge"
                   model={model}
                   setField={setField}
                   markTouched={markTouched}
@@ -1437,7 +1467,7 @@ export default function BookingForm() {
                 />
                 <MoneyField
                   name="driverLhrGtwCharge"
-                  label="LHR/GTW Charge"
+                  label="Drop off charge"
                   model={model}
                   setField={setField}
                   markTouched={markTouched}
@@ -1462,15 +1492,7 @@ export default function BookingForm() {
                   showError={showErr("driverGratuity")}
                   error={errors.driverGratuity}
                 />
-                <MoneyField
-                  name="driverCarPark"
-                  label="Car Park"
-                  model={model}
-                  setField={setField}
-                  markTouched={markTouched}
-                  showError={showErr("driverCarPark")}
-                  error={errors.driverCarPark}
-                />
+
                 <MoneyField
                   name="totalDriver"
                   label="Total"

@@ -10,6 +10,7 @@ type Booking = {
   companyName: string | null;
   
   // Passenger
+  clientId: string | null;
   clientForename: string | null;
   clientSurname: string | null;
   
@@ -27,20 +28,30 @@ type Booking = {
   
   // Driver Financials
   driverScheduledFare: string | null;
-  driverCharge: string | null;       // Generic charge (maybe for CC/Toll?)
+  driverCharge: string | null;
   driverMeetGreet: string | null;
   driverWaitingTime: string | null;
   driverWaitingTimePrice: string | null;
-  driverLhrGtwCharge: string | null; // ULEZ/Site
-  driverViaPrice: string | null;     // Via/Congestion?
+  driverLhrGtwCharge: string | null;
+  driverViaPrice: string | null;
   driverGratuity: string | null;
   totalDriver: string | null;
+
+  // Client Financials
+  clientScheduledFare: string | null;
+  clientCharge: string | null;
+  clientMeetGreet: string | null;
+  clientWaitingTime: string | null;
+  clientWaitingTimePrice: string | null;
+  clientLhrGtwCharge: string | null;
+  clientViaPrice: string | null;
+  clientGratuity: string | null;
+  totalClient: string | null;
 };
 
-type DriverOption = {
+type ClientOption = {
   id: string;
   name: string;
-  callsign: string;
 };
 
 type CompanyOption = {
@@ -48,45 +59,44 @@ type CompanyOption = {
   name: string;
 };
 
-export default function DriverSchedule() {
+export default function ClientSchedule() {
   const { error: toastError } = useToast();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(false);
   
   // Filters
-  const [drivers, setDrivers] = useState<DriverOption[]>([]);
-  const [selectedDriverId, setSelectedDriverId] = useState("");
+  const [clients, setClients] = useState<ClientOption[]>([]);
+  const [selectedClientId, setSelectedClientId] = useState("");
   const [companies, setCompanies] = useState<CompanyOption[]>([]);
   const [selectedCompanyId, setSelectedCompanyId] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  const selectedDriver = useMemo(() => 
-    drivers.find(d => d.id === selectedDriverId), 
-  [drivers, selectedDriverId]);
+  const selectedClient = useMemo(() => 
+    clients.find(d => d.id === selectedClientId), 
+  [clients, selectedClientId]);
 
   const selectedCompany = useMemo(() => 
     companies.find(c => c.id === selectedCompanyId), 
   [companies, selectedCompanyId]);
 
   useEffect(() => {
-    fetchDrivers();
+    fetchClients();
     fetchCompanies();
     fetchBookings();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function fetchDrivers() {
+  async function fetchClients() {
     try {
-      const { data } = await api.get("/drivers", { params: { limit: 1000 } });
+      const { data } = await api.get("/clients", { params: { limit: 1000 } });
       const items = data.items || [];
-      setDrivers(items.map((d: any) => ({
-        id: String(d.id),
-        name: `${d.forename} ${d.surname}`,
-        callsign: d.callsign || d.id
+      setClients(items.map((c: any) => ({
+        id: String(c.id),
+        name: c.companyName || `${c.forename} ${c.surname}`.trim() || c.id
       })));
     } catch (e) {
-      console.error("Failed to load drivers", e);
+      console.error("Failed to load clients", e);
     }
   }
 
@@ -121,10 +131,9 @@ export default function DriverSchedule() {
       if (startDate && (!b.date || b.date < startDate)) return false;
       if (endDate && (!b.date || b.date > endDate)) return false;
 
-      // Driver Filter (Exact Match on ID or No)
-      if (selectedDriverId) {
-        // Assuming driverNo matches the driver ID from /drivers
-        if (b.driverNo !== selectedDriverId) return false; 
+      // Client Filter
+      if (selectedClientId) {
+        if (b.clientId !== selectedClientId) return false; 
       }
 
       // Company Filter
@@ -134,18 +143,18 @@ export default function DriverSchedule() {
 
       return true;
     });
-  }, [bookings, startDate, endDate, selectedDriverId, selectedCompanyId]);
+  }, [bookings, startDate, endDate, selectedClientId, selectedCompanyId]);
 
   // Calculate Totals for Footer
   const totals = useMemo(() => {
     return filteredRows.reduce((acc, row) => {
-      acc.waitingPrice += parseFloat(row.driverWaitingTimePrice || "0");
-      acc.ulez += parseFloat(row.driverLhrGtwCharge || "0"); // Mapping ULEZ/Site
-      acc.cc += parseFloat(row.driverCharge || "0");         // Mapping C.C to C Charge
-      acc.toll += parseFloat(row.driverViaPrice || "0");     // Mapping Toll to Via Price
-      acc.meetGreet += parseFloat(row.driverMeetGreet || "0");
-      acc.fare += parseFloat(row.driverScheduledFare || "0");
-      acc.total += parseFloat(row.totalDriver || "0");
+      acc.waitingPrice += parseFloat(row.clientWaitingTimePrice || "0");
+      acc.ulez += parseFloat(row.clientLhrGtwCharge || "0"); // Mapping ULEZ/Site
+      acc.cc += parseFloat(row.clientCharge || "0");         // Mapping C.C to C Charge
+      acc.toll += parseFloat(row.clientViaPrice || "0");     // Mapping Toll to Via Price
+      acc.meetGreet += parseFloat(row.clientMeetGreet || "0");
+      acc.fare += parseFloat(row.clientScheduledFare || "0");
+      acc.total += parseFloat(row.totalClient || "0");
       return acc;
     }, { waitingPrice: 0, ulez: 0, cc: 0, toll: 0, meetGreet: 0, fare: 0, total: 0 });
   }, [filteredRows]);
@@ -180,7 +189,7 @@ export default function DriverSchedule() {
     }
 
     const headers = [
-      "Booking Ref", "Acc No", "Client Name", "Date", "Time", "Veh", 
+      "Booking Ref", "Acc No", "Driver Name", "Client Name", "Date", "Time", "Veh", 
       "Pick Up Address", "Drop Off Address", "Company Name", "Waiting Time", "W/T Price", 
       "Drop Off charge", "C.C", "Via Price", "M and G", "Scheduled Fare", "Total Pay"
     ];
@@ -194,6 +203,7 @@ export default function DriverSchedule() {
     const rows = filteredRows.map(r => [
       escapeCSV(r.bookingRef),
       escapeCSV(r.accountNo),
+      escapeCSV(`${r.driverForename || ""} ${r.driverSurname || ""}`.trim() || "-"),
       escapeCSV(`${r.clientForename || ""} ${r.clientSurname || ""}`.trim() || "-"),
       escapeCSV(r.date),
       escapeCSV(r.time),
@@ -201,14 +211,14 @@ export default function DriverSchedule() {
       escapeCSV(r.pickUpAddress),
       escapeCSV(r.dropOffAddress),
       escapeCSV(r.companyName),
-      escapeCSV(r.driverWaitingTime),
-      escapeCSV(fmtMoney(r.driverWaitingTimePrice)),
-      escapeCSV(fmtMoney(r.driverLhrGtwCharge)),
-      escapeCSV(fmtMoney(r.driverCharge)),
-      escapeCSV(fmtMoney(r.driverViaPrice)),
-      escapeCSV(fmtMoney(r.driverMeetGreet)),
-      escapeCSV(fmtMoney(r.driverScheduledFare)),
-      escapeCSV(fmtMoney(r.totalDriver))
+      escapeCSV(r.clientWaitingTime),
+      escapeCSV(fmtMoney(r.clientWaitingTimePrice)),
+      escapeCSV(fmtMoney(r.clientLhrGtwCharge)),
+      escapeCSV(fmtMoney(r.clientCharge)),
+      escapeCSV(fmtMoney(r.clientViaPrice)),
+      escapeCSV(fmtMoney(r.clientMeetGreet)),
+      escapeCSV(fmtMoney(r.clientScheduledFare)),
+      escapeCSV(fmtMoney(r.totalClient))
     ].join(","));
 
     const totalsRow = [
@@ -228,7 +238,7 @@ export default function DriverSchedule() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.setAttribute("download", `driver_schedule_${new Date().getTime()}.csv`);
+    link.setAttribute("download", `client_schedule_${new Date().getTime()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -240,15 +250,15 @@ export default function DriverSchedule() {
       {/* Controls (Hidden when printing potentially, or keep for UI) */}
       <div className="card p-4 flex flex-wrap items-end gap-4 bg-white rounded-lg shadow-sm border border-slate-200 print:hidden">
         <div className="w-64">
-          <label className="block text-sm font-medium text-slate-700 mb-1">Select Driver</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Select Client</label>
           <select 
             className="input w-full"
-            value={selectedDriverId}
-            onChange={e => setSelectedDriverId(e.target.value)}
+            value={selectedClientId}
+            onChange={e => setSelectedClientId(e.target.value)}
           >
-            <option value="">-- All Drivers --</option>
-            {drivers.map(d => (
-              <option key={d.id} value={d.id}>{d.name} ({d.callsign})</option>
+            <option value="">-- All Clients --</option>
+            {clients.map(c => (
+              <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
         </div>
@@ -316,7 +326,7 @@ export default function DriverSchedule() {
                <div className="flex justify-end gap-2 mt-12">
                 <span className="font-semibold text-slate-700">Date Payable</span>
                 <span>
-                   {selectedDriver ? new Date().toLocaleDateString('en-GB') : "—"}
+                   {selectedClient ? new Date().toLocaleDateString('en-GB') : "—"}
                 </span>
               </div>
             </div>
@@ -330,6 +340,7 @@ export default function DriverSchedule() {
               <tr>
                 <th className="border border-slate-200 px-2 py-1.5 text-left w-12">Booking Ref</th>
                 <th className="border border-slate-200 px-2 py-1.5 text-center w-8">Acc No</th>
+                <th className="border border-slate-200 px-2 py-1.5 text-left">Driver Name</th>
                 <th className="border border-slate-200 px-2 py-1.5 text-left">Client Name</th>
                 <th className="border border-slate-200 px-2 py-1.5 text-center w-16">Date / Time</th>
                 <th className="border border-slate-200 px-2 py-1.5 text-center w-8">Veh</th>
@@ -348,14 +359,15 @@ export default function DriverSchedule() {
             </thead>
             <tbody>
                {loading ? (
-                 <tr><td colSpan={16} className="p-4 text-center text-slate-500">Loading...</td></tr>
+                 <tr><td colSpan={17} className="p-4 text-center text-slate-500">Loading...</td></tr>
               ) : filteredRows.length === 0 ? (
-                 <tr><td colSpan={16} className="p-8 text-center text-slate-400 italic">No records found. Select a driver and date range.</td></tr>
+                 <tr><td colSpan={17} className="p-8 text-center text-slate-400 italic">No records found. Select a client and date range.</td></tr>
               ) : (
                 filteredRows.map((r, i) => (
                   <tr key={r.id || i} className="hover:bg-slate-50 even:bg-slate-50/50">
                     <td className="border border-slate-200 px-2 py-1 text-center font-mono text-slate-500">{r.bookingRef || "-"}</td>
                     <td className="border border-slate-200 px-2 py-1 text-center">{r.accountNo || "-"}</td>
+                    <td className="border border-slate-200 px-2 py-1">{`${r.driverForename || ""} ${r.driverSurname || ""}`.trim() || "-"}</td>
                     <td className="border border-slate-200 px-2 py-1">{`${r.clientForename || ""} ${r.clientSurname || ""}`.trim() || "-"}</td>
                     <td className="border border-slate-200 px-2 py-1 text-center whitespace-nowrap">
                       <div>{formatDate(r.date)}</div>
@@ -367,21 +379,21 @@ export default function DriverSchedule() {
                     <td className="border border-slate-200 px-2 py-1 truncate max-w-[100px]" title={r.companyName || ""}>{r.companyName || "-"}</td>
                     
                     {/* Financials */}
-                    <td className="border border-slate-200 px-2 py-1 text-center text-slate-500">{r.driverWaitingTime || "0"}</td>
-                    <td className="border border-slate-200 px-2 py-1 text-right">{fmtMoney(r.driverWaitingTimePrice)}</td>
-                    <td className="border border-slate-200 px-2 py-1 text-right">{fmtMoney(r.driverLhrGtwCharge)}</td>
-                    <td className="border border-slate-200 px-2 py-1 text-right">{fmtMoney(r.driverCharge)}</td>
-                    <td className="border border-slate-200 px-2 py-1 text-right">{fmtMoney(r.driverViaPrice)}</td>
-                    <td className="border border-slate-200 px-2 py-1 text-right">{fmtMoney(r.driverMeetGreet)}</td>
-                    <td className="border border-slate-200 px-2 py-1 text-right">{fmtMoney(r.driverScheduledFare)}</td>
-                    <td className="border border-slate-200 px-2 py-1 text-right font-semibold text-emerald-700 bg-emerald-50/50">{fmtMoney(r.totalDriver)}</td>
+                    <td className="border border-slate-200 px-2 py-1 text-center text-slate-500">{r.clientWaitingTime || "0"}</td>
+                    <td className="border border-slate-200 px-2 py-1 text-right">{fmtMoney(r.clientWaitingTimePrice)}</td>
+                    <td className="border border-slate-200 px-2 py-1 text-right">{fmtMoney(r.clientLhrGtwCharge)}</td>
+                    <td className="border border-slate-200 px-2 py-1 text-right">{fmtMoney(r.clientCharge)}</td>
+                    <td className="border border-slate-200 px-2 py-1 text-right">{fmtMoney(r.clientViaPrice)}</td>
+                    <td className="border border-slate-200 px-2 py-1 text-right">{fmtMoney(r.clientMeetGreet)}</td>
+                    <td className="border border-slate-200 px-2 py-1 text-right">{fmtMoney(r.clientScheduledFare)}</td>
+                    <td className="border border-slate-200 px-2 py-1 text-right font-semibold text-emerald-700 bg-emerald-50/50">{fmtMoney(r.totalClient)}</td>
                   </tr>
                 ))
               )}
               
               {/* Totals Row */}
                <tr className="bg-slate-100 font-bold border-t-2 border-slate-300">
-                  <td colSpan={8} className="border border-slate-200 px-2 py-2 text-right text-slate-600 uppercase text-[9px] tracking-wider">Totals</td>
+                  <td colSpan={9} className="border border-slate-200 px-2 py-2 text-right text-slate-600 uppercase text-[9px] tracking-wider">Totals</td>
                   <td className="border border-slate-200 px-2 py-2"></td>
                   <td className="border border-slate-200 px-2 py-2 text-right">{fmtMoney(totals.waitingPrice)}</td>
                   <td className="border border-slate-200 px-2 py-2 text-right">{fmtMoney(totals.ulez)}</td>

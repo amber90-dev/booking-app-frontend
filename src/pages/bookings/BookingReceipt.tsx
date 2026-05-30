@@ -192,7 +192,7 @@ const BookingReceipt: React.FC<Props> = ({ booking }) => {
               {parseFloat(booking.clientViaPrice || "0") > 0 && <PriceRow label="Via Point Charges" value={booking.clientViaPrice} />}
               {parseFloat(booking.clientMeetGreet || "0") > 0 && <PriceRow label="Meet & Greet" value={booking.clientMeetGreet} />}
               {parseFloat(booking.clientGratuity || "0") > 0 && <PriceRow label="Gratuity" value={booking.clientGratuity} />}
-              {parseFloat(booking.clientLhrGtwCharge || "0") > 0 && <PriceRow label="Airport Entry" value={booking.clientLhrGtwCharge} />}
+              {parseFloat(booking.clientLhrGtwCharge || "0") > 0 && <PriceRow label="Drop off charge" value={booking.clientLhrGtwCharge} />}
               
               <div className="border-t-2 border-slate-900 mt-2 pt-2 flex justify-between items-baseline">
                 <span className="text-[10px] font-black text-slate-900 uppercase tracking-tighter">Grand Total Due</span>

@@ -1,4 +1,5 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
+import { Download, Printer, CalendarIcon } from "lucide-react";
 import api from "../../api/axios";
 import { useToast } from "../../components/toast/ToastProvider";
 
@@ -53,29 +54,88 @@ export default function ForecastBooking() {
     });
   }, [rows, startDate, endDate]);
 
+  const formatDate = (dateStr: string | null) => {
+    if (!dateStr) return "-";
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString('en-GB');
+  };
+
+  const formatTime = (timeStr: string | null) => {
+    if (!timeStr) return "-";
+    if (timeStr.includes('T')) {
+       const d = new Date(timeStr);
+       if (!isNaN(d.getTime())) return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    }
+    return timeStr;
+  };
+
+  const exportCSV = () => {
+    if (!filteredRows.length) {
+      toastError("No data to export");
+      return;
+    }
+
+    const headers = [
+      "Date", "Time", "Ref", "Client Name", "Pick Up", "Drop Off", "Driver No", "Vehicle", "Quote"
+    ];
+
+    const escapeCSV = (str: any) => {
+      if (str == null) return '""';
+      const s = String(str).replace(/"/g, '""');
+      return `"${s}"`;
+    };
+
+    const rows = filteredRows.map(r => [
+      escapeCSV(formatDate(r.date)),
+      escapeCSV(formatTime(r.time)),
+      escapeCSV(r.bookingRef),
+      escapeCSV(`${r.clientForename || ""} ${r.clientSurname || ""}`.trim() || "-"),
+      escapeCSV(r.pickUpAddress),
+      escapeCSV(r.dropOffAddress),
+      escapeCSV(r.driverNo),
+      escapeCSV(r.vehicle),
+      escapeCSV(r.totalClient ? parseFloat(r.totalClient).toFixed(2) : "0.00")
+    ].join(","));
+
+    const csvContent = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `forecast_${new Date().getTime()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-bold">Forecast Booking</h2>
+      <h2 className="text-xl font-bold mb-2 print:hidden">Forecast Booking</h2>
 
       {/* Filters */}
-      <div className="card p-4 flex items-end gap-4 bg-white rounded-lg shadow-sm border border-slate-200">
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">From Date</label>
-          <input 
-            type="date" 
-            className="input w-40 border p-2 rounded" 
-            value={startDate} 
-            onChange={e => setStartDate(e.target.value)}
-          />
+      <div className="card p-4 flex flex-wrap items-end justify-between gap-4 bg-white rounded-lg shadow-sm border border-slate-200 print:hidden">
+        <div className="flex flex-wrap items-end gap-4">
+          <UKDateFilter label="From Date" value={startDate} onChange={setStartDate} />
+          <UKDateFilter label="To Date" value={endDate} onChange={setEndDate} />
         </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">To Date</label>
-          <input 
-            type="date" 
-            className="input w-40 border p-2 rounded" 
-            value={endDate} 
-            onChange={e => setEndDate(e.target.value)}
-          />
+        <div className="flex items-center gap-2">
+          <button 
+            type="button" 
+            onClick={() => window.print()} 
+            className="btn bg-white border border-slate-300 text-slate-700 hover:bg-slate-50"
+            title="Print Report"
+          >
+            <Printer size={18} className="mr-2 inline" /> Print
+          </button>
+          <button 
+            type="button" 
+            onClick={exportCSV} 
+            className="btn bg-indigo-600 text-white hover:bg-indigo-700"
+            title="Export CSV"
+          >
+            <Download size={18} className="mr-2 inline" /> Export
+          </button>
         </div>
       </div>
 
@@ -102,8 +162,8 @@ export default function ForecastBooking() {
               filteredRows.map(r => (
                 <tr key={r.id} className="hover:bg-slate-50">
                   <td className="px-4 py-2">
-                    <div className="font-medium">{r.date}</div>
-                    <div className="text-slate-500 text-xs">{r.time}</div>
+                    <div className="font-medium">{formatDate(r.date)}</div>
+                    <div className="text-slate-500 text-xs">{formatTime(r.time)}</div>
                   </td>
                   <td className="px-4 py-2 font-mono text-xs">{r.bookingRef}</td>
                   <td className="px-4 py-2 font-medium">
@@ -123,6 +183,31 @@ export default function ForecastBooking() {
             )}
           </tbody>
         </table>
+      </div>
+    </div>
+  );
+}
+
+function UKDateFilter({ label, value, onChange }: { label: string, value: string, onChange: (val: string) => void }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <div>
+      <label className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
+      <div 
+        className="input w-40 flex items-center justify-between bg-white text-slate-700 cursor-pointer relative"
+        onClick={() => inputRef.current?.showPicker()}
+      >
+        <span>{value ? new Date(value).toLocaleDateString('en-GB') : "DD/MM/YYYY"}</span>
+        <CalendarIcon size={16} className="text-slate-400" />
+        <input 
+          ref={inputRef}
+          type="date" 
+          className="absolute w-0 h-0 opacity-0" 
+          style={{ bottom: 0, left: 0 }}
+          value={value} 
+          onChange={e => onChange(e.target.value)}
+        />
       </div>
     </div>
   );
