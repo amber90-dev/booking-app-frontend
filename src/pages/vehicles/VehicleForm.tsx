@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api/axios";
 import { useToast } from "../../components/toast/ToastProvider";
+import UKFormDateInput from "../../components/UKFormDateInput";
+import MultiPhotoUploader from "../../components/MultiPhotoUploader";
 
 type Vehicle = {
   id?: string;
@@ -21,6 +23,7 @@ type Vehicle = {
   carCeasedToBeAvailable?: string | null;
   pcoDriverExpiry?: string | null;
   pcoVehicleExpiry?: string | null;
+  photoUrl?: string | null;
 };
 
 type Errors = Partial<Record<keyof Vehicle, string>>;
@@ -71,6 +74,12 @@ export default function VehicleForm() {
       setTouched((t) => ({ ...t, [k]: true }));
       setDirty((d) => ({ ...d, [k]: true }));
     };
+
+  const setDirect = (k: keyof Vehicle) => (val: string) => {
+    setModel((m) => ({ ...m, [k]: val }));
+    setTouched((t) => ({ ...t, [k]: true }));
+    setDirty((d) => ({ ...d, [k]: true }));
+  };
 
   const E = (k: keyof Vehicle) =>
     (submitted || touched[k] || dirty[k]) && errors[k] ? (
@@ -200,55 +209,51 @@ export default function VehicleForm() {
             </L>
 
             <L label="MOT Expiry Date">
-              <input
-                type="date"
-                className="input"
-                value={model.motExpiryDate ?? ""}
-                onChange={set("motExpiryDate")}
+              <UKFormDateInput
+                value={model.motExpiryDate}
+                onChange={setDirect("motExpiryDate")}
               />
             </L>
             <L label="Cert Of Ins Expiry Date">
-              <input
-                type="date"
-                className="input"
-                value={model.certOfInsExpiryDate ?? ""}
-                onChange={set("certOfInsExpiryDate")}
+              <UKFormDateInput
+                value={model.certOfInsExpiryDate}
+                onChange={setDirect("certOfInsExpiryDate")}
               />
             </L>
 
             <L label="Car First Available">
-              <input
-                type="date"
-                className="input"
-                value={model.carFirstAvailable ?? ""}
-                onChange={set("carFirstAvailable")}
+              <UKFormDateInput
+                value={model.carFirstAvailable}
+                onChange={setDirect("carFirstAvailable")}
               />
             </L>
             <L label="Car Ceased To Be Available">
-              <input
-                type="date"
-                className="input"
-                value={model.carCeasedToBeAvailable ?? ""}
-                onChange={set("carCeasedToBeAvailable")}
+              <UKFormDateInput
+                value={model.carCeasedToBeAvailable}
+                onChange={setDirect("carCeasedToBeAvailable")}
               />
             </L>
 
             <L label="PCO Driver Expiry">
-              <input
-                type="date"
-                className="input"
-                value={model.pcoDriverExpiry ?? ""}
-                onChange={set("pcoDriverExpiry")}
+              <UKFormDateInput
+                value={model.pcoDriverExpiry}
+                onChange={setDirect("pcoDriverExpiry")}
               />
             </L>
             <L label="PCO Vehicle Expiry">
-              <input
-                type="date"
-                className="input"
-                value={model.pcoVehicleExpiry ?? ""}
-                onChange={set("pcoVehicleExpiry")}
+              <UKFormDateInput
+                value={model.pcoVehicleExpiry}
+                onChange={setDirect("pcoVehicleExpiry")}
               />
             </L>
+
+            <div className="md:col-span-2">
+              <MultiPhotoUploader
+                label="Photos & Documents"
+                value={model.photoUrl}
+                onChange={setDirect("photoUrl")}
+              />
+            </div>
           </div>
         </div>
         <button type="submit" className="hidden" />

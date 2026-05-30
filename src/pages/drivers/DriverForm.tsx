@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api/axios";
 import { useToast } from "../../components/toast/ToastProvider";
+import UKFormDateInput from "../../components/UKFormDateInput";
+import MultiPhotoUploader from "../../components/MultiPhotoUploader";
 
 type Driver = {
   id?: string;
@@ -71,6 +73,12 @@ export default function DriverForm() {
       setTouched((t) => ({ ...t, [k]: true }));
       setDirty((d) => ({ ...d, [k]: true }));
     };
+
+  const setDirect = (k: keyof Driver) => (val: string) => {
+    setModel((m) => ({ ...m, [k]: val }));
+    setTouched((t) => ({ ...t, [k]: true }));
+    setDirty((d) => ({ ...d, [k]: true }));
+  };
 
   const E = (k: keyof Driver) =>
     (submitted || touched[k] || dirty[k]) && errors[k] ? (
@@ -213,11 +221,9 @@ export default function DriverForm() {
             </L>
 
             <L label="Date Of Birth">
-              <input
-                type="date"
-                className="input"
-                value={model.dateOfBirth ?? ""}
-                onChange={set("dateOfBirth")}
+              <UKFormDateInput
+                value={model.dateOfBirth}
+                onChange={setDirect("dateOfBirth")}
               />
             </L>
             <L label="National Insurance No">
@@ -229,30 +235,24 @@ export default function DriverForm() {
             </L>
 
             <L label="Start Date">
-              <input
-                type="date"
-                className="input"
-                value={model.startDate ?? ""}
-                onChange={set("startDate")}
+              <UKFormDateInput
+                value={model.startDate}
+                onChange={setDirect("startDate")}
               />
             </L>
             <L label="Finish Date">
-              <input
-                type="date"
-                className="input"
-                value={model.finishDate ?? ""}
-                onChange={set("finishDate")}
+              <UKFormDateInput
+                value={model.finishDate}
+                onChange={setDirect("finishDate")}
               />
             </L>
 
             <div className="md:col-span-2">
-              <L label="Photo URL">
-                <input
-                  className="input"
-                  value={model.photoUrl ?? ""}
-                  onChange={set("photoUrl")}
-                />
-              </L>
+              <MultiPhotoUploader
+                label="Photos & Documents"
+                value={model.photoUrl}
+                onChange={setDirect("photoUrl")}
+              />
             </div>
 
             <div className="md:col-span-2">

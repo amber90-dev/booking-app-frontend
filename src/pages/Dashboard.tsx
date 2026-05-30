@@ -4,15 +4,7 @@ import {
   Users,
   Briefcase,
   Car,
-  TrendingUp,
-  PoundSterling,
-  LineChart as LineChartIcon,
-  CheckCircle,
-  Clock,
-  XCircle,
-  Wallet,
-  CreditCard,
-  Percent
+  LineChart as LineChartIcon
 } from "lucide-react";
 import {
   LineChart,
@@ -161,32 +153,12 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      {/* 12 Stat Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+      {/* 5 Stat Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         <StatCard
           title="All Bookings"
           value={loading ? "..." : stats.bookings.toString()}
           icon={<CalendarCheck className="text-blue-600" />}
-        />
-        <StatCard
-          title="Completed Bookings"
-          value={loading ? "..." : stats.completedBookings.toString()}
-          icon={<CheckCircle className="text-emerald-600" />}
-        />
-        <StatCard
-          title="Pending Bookings"
-          value={loading ? "..." : stats.pendingBookings.toString()}
-          icon={<Clock className="text-amber-600" />}
-        />
-        <StatCard
-          title="Cancelled Bookings"
-          value={loading ? "..." : stats.cancelledBookings.toString()}
-          icon={<XCircle className="text-rose-600" />}
-        />
-        <StatCard
-          title="This Month (Completed)"
-          value={loading ? "..." : stats.monthlyCompleted.toString()}
-          icon={<CalendarCheck className="text-teal-600" />}
         />
         <StatCard
           title="Contacts"
@@ -207,26 +179,6 @@ export default function Dashboard() {
           title="Vehicles"
           value={loading ? "..." : stats.vehicles.toString()}
           icon={<Car className="text-rose-600" />}
-        />
-        <StatCard
-          title="Monthly Total"
-          value={loading ? "..." : `£${stats.monthlyTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-          icon={<PoundSterling className="text-emerald-600" />}
-        />
-        <StatCard
-          title="Total Revenue"
-          value={loading ? "..." : `£${stats.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-          icon={<Wallet className="text-indigo-600" />}
-        />
-        <StatCard
-          title="Total Driver Cost"
-          value={loading ? "..." : `£${stats.driverTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-          icon={<CreditCard className="text-orange-600" />}
-        />
-        <StatCard
-          title="Total Commission"
-          value={loading ? "..." : `£${stats.totalCommission.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-          icon={<Percent className="text-emerald-600" />}
         />
       </div>
 
