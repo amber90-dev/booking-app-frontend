@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api/axios";
 import { useToast } from "../../components/toast/ToastProvider";
+import UKFormDateInput from "../../components/UKFormDateInput";
 
 type Staff = {
   id?: string;
@@ -69,6 +70,12 @@ export default function StaffForm() {
       setTouched((t) => ({ ...t, [k]: true }));
       setDirty((d) => ({ ...d, [k]: true }));
     };
+
+  const setDirect = (k: keyof Staff) => (val: string) => {
+    setModel((m) => ({ ...m, [k]: val }));
+    setTouched((t) => ({ ...t, [k]: true }));
+    setDirty((d) => ({ ...d, [k]: true }));
+  };
 
   const E = (k: keyof Staff) =>
     (submitted || touched[k] || dirty[k]) && errors[k] ? (
@@ -211,11 +218,9 @@ export default function StaffForm() {
             </L>
 
             <L label="DOB">
-              <input
-                type="date"
-                className="input"
-                value={model.dob ?? ""}
-                onChange={set("dob")}
+              <UKFormDateInput
+                value={model.dob}
+                onChange={setDirect("dob")}
               />
             </L>
             <L label="National Insurance No">
@@ -227,19 +232,15 @@ export default function StaffForm() {
             </L>
 
             <L label="Start Date">
-              <input
-                type="date"
-                className="input"
-                value={model.startDate ?? ""}
-                onChange={set("startDate")}
+              <UKFormDateInput
+                value={model.startDate}
+                onChange={setDirect("startDate")}
               />
             </L>
             <L label="Finish Date">
-              <input
-                type="date"
-                className="input"
-                value={model.finishDate ?? ""}
-                onChange={set("finishDate")}
+              <UKFormDateInput
+                value={model.finishDate}
+                onChange={setDirect("finishDate")}
               />
             </L>
           </div>
