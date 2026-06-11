@@ -296,8 +296,8 @@ function Th({ children, className = "" }: any) {
     </th>
   );
 }
-function Td({ children, className = "" }: any) {
-  return <td className={`px-3 py-2 ${className}`}>{children}</td>;
+function Td({ children, className = "", ...props }: any) {
+  return <td className={`px-3 py-2 ${className}`} {...props}>{children}</td>;
 }
 
 function Tab({
