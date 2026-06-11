@@ -64,6 +64,13 @@ export default function ClientSchedule() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(false);
   
+  const refNumber = useMemo(() => {
+    const date = new Date();
+    const yymmdd = `${date.getFullYear().toString().slice(-2)}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}`;
+    const random = Math.floor(1000 + Math.random() * 9000);
+    return `CR-${yymmdd}-${random}`;
+  }, []);
+  
   // Filters
   const [clients, setClients] = useState<ClientOption[]>([]);
   const [selectedClientId, setSelectedClientId] = useState("");
@@ -233,7 +240,8 @@ export default function ClientSchedule() {
       escapeCSV(fmtMoney(totals.total))
     ].join(",");
 
-    const csvContent = [headers.join(","), ...rows, totalsRow].join("\n");
+    const refRow = `"Ref No:",${escapeCSV(refNumber)}`;
+    const csvContent = [refRow, headers.join(","), ...rows, totalsRow].join("\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -286,14 +294,7 @@ export default function ClientSchedule() {
           onChange={setEndDate} 
         />
         <div className="ml-auto flex items-center gap-2">
-          <button 
-            type="button" 
-            onClick={() => window.print()} 
-            className="btn bg-white border border-slate-300 text-slate-700 hover:bg-slate-50"
-            title="Print Report"
-          >
-            <Printer size={18} className="mr-2 inline" /> Print
-          </button>
+
           <button 
             type="button" 
             onClick={exportCSV} 
@@ -318,18 +319,7 @@ export default function ClientSchedule() {
               </div>
             </div>
 
-            <div className="w-1/3 text-right space-y-1">
-               <div className="flex justify-end gap-2">
-                <span className="font-semibold text-slate-700">Ref No</span>
-                <span>01</span>
-              </div>
-               <div className="flex justify-end gap-2 mt-12">
-                <span className="font-semibold text-slate-700">Date Payable</span>
-                <span>
-                   {selectedClient ? new Date().toLocaleDateString('en-GB') : "—"}
-                </span>
-              </div>
-            </div>
+
           </div>
         </div>
 

@@ -1157,57 +1157,9 @@ export default function BookingForm() {
           </Grid>
         </Section>
 
-        {/* Driver & Trip */}
-        <Section title="Driver & Trip">
+        {/* Trip */}
+        <Section title="Trip">
           <Grid>
-            {/* Driver No + dropdown */}
-            <div ref={driverBoxRef} className="relative">
-              <L label="Driver No">
-                <input
-                  className="input"
-                  value={model.driverNo ?? ""}
-                  onChange={setField("driverNo")}
-                  onFocus={() =>
-                    driverLookup.setOpen(!!(driverQuery || model.driverNo))
-                  }
-                />
-              </L>
-              <Dropdown
-                open={driverLookup.open}
-                loading={driverLookup.loading}
-                options={driverLookup.opts}
-                onPick={pickDriver}
-              />
-            </div>
-
-            <L label="Driver Forename">
-              <input
-                className={`input ${lockedDriver ? "bg-slate-50" : ""}`}
-                value={model.driverForename ?? ""}
-                onChange={setField("driverForename")}
-                onBlur={markTouched("driverForename")}
-                disabled={lockedDriver}
-              />
-            </L>
-            <L label="Driver Surname">
-              <input
-                className={`input ${lockedDriver ? "bg-slate-50" : ""}`}
-                value={model.driverSurname ?? ""}
-                onChange={setField("driverSurname")}
-                onBlur={markTouched("driverSurname")}
-                disabled={lockedDriver}
-              />
-            </L>
-            <L label="Driver Mobile">
-              <input
-                className={`input ${lockedDriver ? "bg-slate-50" : ""}`}
-                value={model.driverMobile ?? ""}
-                onChange={setField("driverMobile")}
-                onBlur={markTouched("driverMobile")}
-                disabled={lockedDriver}
-              />
-            </L>
-
             <L label="Date *">
               <UKDateInput
                 value={model.date ?? ""}
@@ -1243,7 +1195,7 @@ export default function BookingForm() {
                 </div>
               )}
             </L>
-            <L label="Details Given">
+            {/* <L label="Details Given">
               <input
                 type="checkbox"
                 className="h-4 w-4"
@@ -1251,7 +1203,7 @@ export default function BookingForm() {
                 onChange={setField("detailsGiven")}
                 onBlur={markTouched("detailsGiven")}
               />
-            </L>
+            </L> */}
             <L label="Cancelled">
               <input
                 type="checkbox"
@@ -1314,6 +1266,7 @@ export default function BookingForm() {
             </div>
           </Grid>
         </Section>
+
 
         {/* Fare Breakdown */}
         <details className="bg-white border border-slate-200 rounded-xl open:shadow-sm">
@@ -1517,6 +1470,59 @@ export default function BookingForm() {
             />
           </L>
         </div>
+
+        {/* Driver */}
+        <Section title="Driver">
+          <Grid>
+            {/* Driver No + dropdown */}
+            <div ref={driverBoxRef} className="relative">
+              <L label="Driver No">
+                <input
+                  className="input"
+                  value={model.driverNo ?? ""}
+                  onChange={setField("driverNo")}
+                  onFocus={() =>
+                    driverLookup.setOpen(!!(driverQuery || model.driverNo))
+                  }
+                />
+              </L>
+              <Dropdown
+                open={driverLookup.open}
+                loading={driverLookup.loading}
+                options={driverLookup.opts}
+                onPick={pickDriver}
+              />
+            </div>
+
+            <L label="Driver Forename">
+              <input
+                className={`input ${lockedDriver ? "bg-slate-50" : ""}`}
+                value={model.driverForename ?? ""}
+                onChange={setField("driverForename")}
+                onBlur={markTouched("driverForename")}
+                disabled={lockedDriver}
+              />
+            </L>
+            <L label="Driver Surname">
+              <input
+                className={`input ${lockedDriver ? "bg-slate-50" : ""}`}
+                value={model.driverSurname ?? ""}
+                onChange={setField("driverSurname")}
+                onBlur={markTouched("driverSurname")}
+                disabled={lockedDriver}
+              />
+            </L>
+            <L label="Driver Mobile">
+              <input
+                className={`input ${lockedDriver ? "bg-slate-50" : ""}`}
+                value={model.driverMobile ?? ""}
+                onChange={setField("driverMobile")}
+                onBlur={markTouched("driverMobile")}
+                disabled={lockedDriver}
+              />
+            </L>
+          </Grid>
+        </Section>
 
         {/* Hidden submit so Enter works */}
         <button type="submit" className="hidden" />

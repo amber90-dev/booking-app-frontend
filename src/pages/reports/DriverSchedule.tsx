@@ -37,71 +37,27 @@ type Booking = {
   totalDriver: string | null;
 };
 
-type DriverOption = {
-  id: string;
-  name: string;
-  callsign: string;
-};
-
-type CompanyOption = {
-  id: string;
-  name: string;
-};
-
 export default function DriverSchedule() {
   const { error: toastError } = useToast();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(false);
   
+  const refNumber = useMemo(() => {
+    const date = new Date();
+    const yymmdd = `${date.getFullYear().toString().slice(-2)}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}`;
+    const random = Math.floor(1000 + Math.random() * 9000);
+    return `DR-${yymmdd}-${random}`;
+  }, []);
+
   // Filters
-  const [drivers, setDrivers] = useState<DriverOption[]>([]);
-  const [selectedDriverId, setSelectedDriverId] = useState("");
-  const [companies, setCompanies] = useState<CompanyOption[]>([]);
-  const [selectedCompanyId, setSelectedCompanyId] = useState("");
+  const [driverSearch, setDriverSearch] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  const selectedDriver = useMemo(() => 
-    drivers.find(d => d.id === selectedDriverId), 
-  [drivers, selectedDriverId]);
-
-  const selectedCompany = useMemo(() => 
-    companies.find(c => c.id === selectedCompanyId), 
-  [companies, selectedCompanyId]);
-
   useEffect(() => {
-    fetchDrivers();
-    fetchCompanies();
     fetchBookings();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  async function fetchDrivers() {
-    try {
-      const { data } = await api.get("/drivers", { params: { limit: 1000 } });
-      const items = data.items || [];
-      setDrivers(items.map((d: any) => ({
-        id: String(d.id),
-        name: `${d.forename} ${d.surname}`,
-        callsign: d.callsign || d.id
-      })));
-    } catch (e) {
-      console.error("Failed to load drivers", e);
-    }
-  }
-
-  async function fetchCompanies() {
-    try {
-      const { data } = await api.get("/companies", { params: { limit: 1000 } });
-      const items = data.items || [];
-      setCompanies(items.map((c: any) => ({
-        id: String(c.accountNo || c.id),
-        name: c.companyName || c.name || String(c.id)
-      })));
-    } catch (e) {
-      console.error("Failed to load companies", e);
-    }
-  }
 
   async function fetchBookings() {
     setLoading(true);
@@ -121,20 +77,14 @@ export default function DriverSchedule() {
       if (startDate && (!b.date || b.date < startDate)) return false;
       if (endDate && (!b.date || b.date > endDate)) return false;
 
-      // Driver Filter (Exact Match on ID or No)
-      if (selectedDriverId) {
-        // Assuming driverNo matches the driver ID from /drivers
-        if (b.driverNo !== selectedDriverId) return false; 
-      }
-
-      // Company Filter
-      if (selectedCompanyId) {
-        if (b.accountNo !== selectedCompanyId) return false;
+      // Driver Filter (Partial Match on Driver No)
+      if (driverSearch) {
+        if (!b.driverNo?.toLowerCase().includes(driverSearch.toLowerCase())) return false; 
       }
 
       return true;
     });
-  }, [bookings, startDate, endDate, selectedDriverId, selectedCompanyId]);
+  }, [bookings, startDate, endDate, driverSearch]);
 
   // Calculate Totals for Footer
   const totals = useMemo(() => {
@@ -180,7 +130,7 @@ export default function DriverSchedule() {
     }
 
     const headers = [
-      "Booking Ref", "Acc No", "Client Name", "Date", "Time", "Veh", 
+      "Booking Ref", "Acc No", "Driver No", "Client Name", "Date", "Time", "Veh", 
       "Pick Up Address", "Drop Off Address", "Company Name", "Waiting Time", "W/T Price", 
       "Drop Off charge", "C.C", "Via Price", "M and G", "Scheduled Fare", "Total Pay"
     ];
@@ -194,6 +144,7 @@ export default function DriverSchedule() {
     const rows = filteredRows.map(r => [
       escapeCSV(r.bookingRef),
       escapeCSV(r.accountNo),
+      escapeCSV(r.driverNo),
       escapeCSV(`${r.clientForename || ""} ${r.clientSurname || ""}`.trim() || "-"),
       escapeCSV(r.date),
       escapeCSV(r.time),
@@ -223,7 +174,8 @@ export default function DriverSchedule() {
       escapeCSV(fmtMoney(totals.total))
     ].join(",");
 
-    const csvContent = [headers.join(","), ...rows, totalsRow].join("\n");
+    const refRow = `"Ref No:",${escapeCSV(refNumber)}`;
+    const csvContent = [refRow, headers.join(","), ...rows, totalsRow].join("\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -240,30 +192,14 @@ export default function DriverSchedule() {
       {/* Controls (Hidden when printing potentially, or keep for UI) */}
       <div className="card p-4 flex flex-wrap items-end gap-4 bg-white rounded-lg shadow-sm border border-slate-200 print:hidden">
         <div className="w-64">
-          <label className="block text-sm font-medium text-slate-700 mb-1">Select Driver</label>
-          <select 
+          <label className="block text-sm font-medium text-slate-700 mb-1">Search Driver No</label>
+          <input 
+            type="text"
             className="input w-full"
-            value={selectedDriverId}
-            onChange={e => setSelectedDriverId(e.target.value)}
-          >
-            <option value="">-- All Drivers --</option>
-            {drivers.map(d => (
-              <option key={d.id} value={d.id}>{d.name} ({d.callsign})</option>
-            ))}
-          </select>
-        </div>
-        <div className="w-64">
-          <label className="block text-sm font-medium text-slate-700 mb-1">Select Company</label>
-          <select 
-            className="input w-full"
-            value={selectedCompanyId}
-            onChange={e => setSelectedCompanyId(e.target.value)}
-          >
-            <option value="">-- All Companies --</option>
-            {companies.map(c => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
+            placeholder="e.g. D101"
+            value={driverSearch}
+            onChange={e => setDriverSearch(e.target.value)}
+          />
         </div>
         <UKDateFilter 
           label="Start Date" 
@@ -276,14 +212,7 @@ export default function DriverSchedule() {
           onChange={setEndDate} 
         />
         <div className="ml-auto flex items-center gap-2">
-          <button 
-            type="button" 
-            onClick={() => window.print()} 
-            className="btn bg-white border border-slate-300 text-slate-700 hover:bg-slate-50"
-            title="Print Report"
-          >
-            <Printer size={18} className="mr-2 inline" /> Print
-          </button>
+
           <button 
             type="button" 
             onClick={exportCSV} 
@@ -308,18 +237,7 @@ export default function DriverSchedule() {
               </div>
             </div>
 
-            <div className="w-1/3 text-right space-y-1">
-               <div className="flex justify-end gap-2">
-                <span className="font-semibold text-slate-700">Ref No</span>
-                <span>01</span>
-              </div>
-               <div className="flex justify-end gap-2 mt-12">
-                <span className="font-semibold text-slate-700">Date Payable</span>
-                <span>
-                   {selectedDriver ? new Date().toLocaleDateString('en-GB') : "—"}
-                </span>
-              </div>
-            </div>
+
           </div>
         </div>
 
@@ -330,6 +248,7 @@ export default function DriverSchedule() {
               <tr>
                 <th className="border border-slate-200 px-2 py-1.5 text-left w-12">Booking Ref</th>
                 <th className="border border-slate-200 px-2 py-1.5 text-center w-8">Acc No</th>
+                <th className="border border-slate-200 px-2 py-1.5 text-center w-12">Driver No</th>
                 <th className="border border-slate-200 px-2 py-1.5 text-left">Client Name</th>
                 <th className="border border-slate-200 px-2 py-1.5 text-center w-16">Date / Time</th>
                 <th className="border border-slate-200 px-2 py-1.5 text-center w-8">Veh</th>
@@ -356,6 +275,7 @@ export default function DriverSchedule() {
                   <tr key={r.id || i} className="hover:bg-slate-50 even:bg-slate-50/50">
                     <td className="border border-slate-200 px-2 py-1 text-center font-mono text-slate-500">{r.bookingRef || "-"}</td>
                     <td className="border border-slate-200 px-2 py-1 text-center">{r.accountNo || "-"}</td>
+                    <td className="border border-slate-200 px-2 py-1 text-center font-mono">{r.driverNo || "-"}</td>
                     <td className="border border-slate-200 px-2 py-1">{`${r.clientForename || ""} ${r.clientSurname || ""}`.trim() || "-"}</td>
                     <td className="border border-slate-200 px-2 py-1 text-center whitespace-nowrap">
                       <div>{formatDate(r.date)}</div>
@@ -381,7 +301,7 @@ export default function DriverSchedule() {
               
               {/* Totals Row */}
                <tr className="bg-slate-100 font-bold border-t-2 border-slate-300">
-                  <td colSpan={8} className="border border-slate-200 px-2 py-2 text-right text-slate-600 uppercase text-[9px] tracking-wider">Totals</td>
+                  <td colSpan={9} className="border border-slate-200 px-2 py-2 text-right text-slate-600 uppercase text-[9px] tracking-wider">Totals</td>
                   <td className="border border-slate-200 px-2 py-2"></td>
                   <td className="border border-slate-200 px-2 py-2 text-right">{fmtMoney(totals.waitingPrice)}</td>
                   <td className="border border-slate-200 px-2 py-2 text-right">{fmtMoney(totals.ulez)}</td>

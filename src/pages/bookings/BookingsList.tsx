@@ -161,7 +161,6 @@ export default function BookingsList() {
           <thead className="bg-slate-50 text-slate-600">
             <tr>
               <Th>Date</Th>
-              <Th>Time</Th>
               <Th>Ref</Th>
               <Th>Client</Th>
               <Th>From</Th>
@@ -175,21 +174,20 @@ export default function BookingsList() {
           <tbody>
             {loading ? (
               <tr>
-                <td className="p-4" colSpan={10}>
+                <td className="p-4" colSpan={9}>
                   Loading...
                 </td>
               </tr>
             ) : visibleRows.length === 0 ? (
               <tr>
-                <td className="p-4" colSpan={10}>
+                <td className="p-4" colSpan={9}>
                   No bookings
                 </td>
               </tr>
             ) : (
               visibleRows.map((r) => (
                 <tr key={r.id} className="border-t">
-                  <Td>{r.date ?? "-"}</Td>
-                  <Td>{r.time ?? "-"}</Td>
+                  <Td>{r.date ? new Date(r.date).toLocaleDateString('en-GB') : "-"}</Td>
                   <Td>{r.bookingRef ?? "-"}</Td>
                   <Td>
                     {r.clientForename || r.clientSurname
@@ -197,13 +195,13 @@ export default function BookingsList() {
                       : r.clientId ?? "-"}
                   </Td>
                   <Td
-                    className="max-w-[240px] truncate"
+                    className="max-w-[240px] whitespace-normal break-words"
                     title={r.pickUpAddress ?? undefined}
                   >
                     {r.pickUpAddress ?? "-"}
                   </Td>
                   <Td
-                    className="max-w-[240px] truncate"
+                    className="max-w-[240px] whitespace-normal break-words"
                     title={r.dropOffAddress ?? undefined}
                   >
                     {r.dropOffAddress ?? "-"}

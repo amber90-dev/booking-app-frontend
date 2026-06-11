@@ -144,10 +144,12 @@ export default function ForecastBooking() {
         <table className="min-w-full text-sm">
           <thead className="bg-slate-50 text-slate-700 font-medium">
             <tr>
-              <th className="px-4 py-3 text-left">Date / Time</th>
+              <th className="px-4 py-3 text-left">Date</th>
+              <th className="px-4 py-3 text-left">Time</th>
               <th className="px-4 py-3 text-left">Ref</th>
               <th className="px-4 py-3 text-left">Client</th>
-              <th className="px-4 py-3 text-left">Pickup / Dropoff</th>
+              <th className="px-4 py-3 text-left">Pickup</th>
+              <th className="px-4 py-3 text-left">Dropoff</th>
               <th className="px-4 py-3 text-left">Driver</th>
               <th className="px-4 py-3 text-left">Vehicle</th>
               <th className="px-4 py-3 text-right">Quote</th>
@@ -155,23 +157,23 @@ export default function ForecastBooking() {
           </thead>
           <tbody className="divide-y divide-slate-100">
             {loading ? (
-              <tr><td colSpan={7} className="p-4 text-center">Loading...</td></tr>
+              <tr><td colSpan={9} className="p-4 text-center">Loading...</td></tr>
             ) : filteredRows.length === 0 ? (
-              <tr><td colSpan={7} className="p-4 text-center text-slate-500">No bookings in this range</td></tr>
+              <tr><td colSpan={9} className="p-4 text-center text-slate-500">No bookings in this range</td></tr>
             ) : (
               filteredRows.map(r => (
                 <tr key={r.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-2">
-                    <div className="font-medium">{formatDate(r.date)}</div>
-                    <div className="text-slate-500 text-xs">{formatTime(r.time)}</div>
-                  </td>
+                  <td className="px-4 py-2 font-medium whitespace-nowrap">{formatDate(r.date)}</td>
+                  <td className="px-4 py-2 text-slate-500 text-xs whitespace-nowrap">{formatTime(r.time)}</td>
                   <td className="px-4 py-2 font-mono text-xs">{r.bookingRef}</td>
                   <td className="px-4 py-2 font-medium">
                     {(`${r.clientForename || ""} ${r.clientSurname || ""}`).trim() || "-"}
                   </td>
-                  <td className="px-4 py-2 max-w-[200px] truncate">
-                    <div title={r.pickUpAddress || ""}>{r.pickUpAddress}</div>
-                    <div title={r.dropOffAddress || ""} className="text-slate-400">to {r.dropOffAddress}</div>
+                  <td className="px-4 py-2 whitespace-normal break-words min-w-[150px]">
+                    {r.pickUpAddress || "-"}
+                  </td>
+                  <td className="px-4 py-2 whitespace-normal break-words min-w-[150px]">
+                    {r.dropOffAddress || "-"}
                   </td>
                   <td className="px-4 py-2">{r.driverNo || "-"}</td>
                   <td className="px-4 py-2">{r.vehicle || "-"}</td>
