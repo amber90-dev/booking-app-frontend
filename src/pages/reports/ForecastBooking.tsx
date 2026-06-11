@@ -169,11 +169,11 @@ export default function ForecastBooking() {
                   <td className="px-4 py-2 font-medium">
                     {(`${r.clientForename || ""} ${r.clientSurname || ""}`).trim() || "-"}
                   </td>
-                  <td className="px-4 py-2 whitespace-normal break-words min-w-[150px]">
-                    {r.pickUpAddress || "-"}
+                  <td className="px-4 py-2 whitespace-normal break-words min-w-[150px]" title={r.pickUpAddress ?? undefined}>
+                    {r.pickUpAddress && r.pickUpAddress.length > 30 ? r.pickUpAddress.substring(0, 30) + '...' : (r.pickUpAddress || "-")}
                   </td>
-                  <td className="px-4 py-2 whitespace-normal break-words min-w-[150px]">
-                    {r.dropOffAddress || "-"}
+                  <td className="px-4 py-2 whitespace-normal break-words min-w-[150px]" title={r.dropOffAddress ?? undefined}>
+                    {r.dropOffAddress && r.dropOffAddress.length > 30 ? r.dropOffAddress.substring(0, 30) + '...' : (r.dropOffAddress || "-")}
                   </td>
                   <td className="px-4 py-2">{r.driverNo || "-"}</td>
                   <td className="px-4 py-2">{r.vehicle || "-"}</td>

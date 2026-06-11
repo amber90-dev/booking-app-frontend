@@ -198,13 +198,13 @@ export default function BookingsList() {
                     className="max-w-[240px] whitespace-normal break-words"
                     title={r.pickUpAddress ?? undefined}
                   >
-                    {r.pickUpAddress ?? "-"}
+                    {r.pickUpAddress && r.pickUpAddress.length > 30 ? r.pickUpAddress.substring(0, 30) + '...' : (r.pickUpAddress || "-")}
                   </Td>
                   <Td
                     className="max-w-[240px] whitespace-normal break-words"
                     title={r.dropOffAddress ?? undefined}
                   >
-                    {r.dropOffAddress ?? "-"}
+                    {r.dropOffAddress && r.dropOffAddress.length > 30 ? r.dropOffAddress.substring(0, 30) + '...' : (r.dropOffAddress || "-")}
                   </Td>
                   <Td>{r.vehicle ?? "-"}</Td>
                   <Td>
