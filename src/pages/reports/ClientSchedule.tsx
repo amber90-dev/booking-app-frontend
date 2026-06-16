@@ -140,12 +140,22 @@ export default function ClientSchedule() {
 
       // Client Filter
       if (selectedClientId) {
-        if (b.clientId !== selectedClientId) return false; 
+        if (b.clientId !== selectedClientId) {
+          const clientName = `${b.clientForename || ""} ${b.clientSurname || ""}`.trim();
+          if (!clientName || !selectedClient || clientName !== selectedClient.name) {
+            return false;
+          }
+        }
       }
 
       // Company Filter
       if (selectedCompanyId) {
-        if (b.accountNo !== selectedCompanyId) return false;
+        if (b.accountNo !== selectedCompanyId) {
+          const companyName = (b.companyName || "").trim();
+          if (!companyName || !selectedCompany || companyName !== selectedCompany.name) {
+            return false;
+          }
+        }
       }
 
       return true;

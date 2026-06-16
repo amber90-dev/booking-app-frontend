@@ -20,7 +20,7 @@ type BookingRow = {
   totalClient: string | null;
 };
 
-type TabKey = "all" | "active" | "cancelled";
+type TabKey = "all" | "active" | "completed" | "cancelled";
 
 export default function BookingsList() {
   const { error: toastError, success } = useToast();
@@ -34,8 +34,8 @@ export default function BookingsList() {
 
   const page = parseInt(params.get("page") || "1", 10);
   const [tab, setTab] = useState<TabKey>(() => {
-    const t = params.get("tab");
-    return t === "active" || t === "cancelled" ? t : "all";
+    const t = params.get("tab") as TabKey;
+    return ["active", "completed", "cancelled"].includes(t) ? t : "all";
   });
 
   useEffect(() => {
@@ -91,17 +91,21 @@ export default function BookingsList() {
     }
   }
 
-  // Client-side filtering for Active (and safety for Cancelled)
+  // Client-side filtering for Active, Completed, Cancelled
   const visibleRows = useMemo(() => {
-    if (tab === "active") return rows.filter((r) => !r.cancelled);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (tab === "active") return rows.filter((r) => !r.cancelled && (!r.date || new Date(r.date) >= today));
+    if (tab === "completed") return rows.filter((r) => !r.cancelled && (r.date && new Date(r.date) < today));
     if (tab === "cancelled") return rows.filter((r) => r.cancelled);
     return rows;
   }, [rows, tab]);
 
   // Pagination notes:
   // - All/Cancelled: server total is correct
-  // - Active: client-side filter → use current page length as effective total
-  const effectiveTotal = tab === "active" ? visibleRows.length : total;
+  // - Active/Completed: client-side filter → use current page length as effective total
+  const effectiveTotal = (tab === "active" || tab === "completed") ? visibleRows.length : total;
   const pages = Math.max(1, Math.ceil(effectiveTotal / 20));
 
   const changeTab = (next: TabKey) => {
@@ -147,6 +151,11 @@ export default function BookingsList() {
           label="Active"
           active={tab === "active"}
           onClick={() => changeTab("active")}
+        />
+        <Tab
+          label="Completed"
+          active={tab === "completed"}
+          onClick={() => changeTab("completed")}
         />
         <Tab
           label="Cancelled"
@@ -211,6 +220,10 @@ export default function BookingsList() {
                     {r.cancelled ? (
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs border border-rose-200 text-rose-700 bg-rose-50">
                         Cancelled
+                      </span>
+                    ) : (r.date && new Date(r.date) < new Date(new Date().setHours(0,0,0,0))) ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs border border-blue-200 text-blue-700 bg-blue-50">
+                        Completed
                       </span>
                     ) : (
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs border border-emerald-200 text-emerald-700 bg-emerald-50">
